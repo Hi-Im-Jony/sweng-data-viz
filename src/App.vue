@@ -1,8 +1,17 @@
 <template>
   <div id="app">
     <hero />
-    <h2>What languages are preffered by *username*, at *orgname*?</h2>
-
+    <h2>
+      What languages are preffered by
+      <input
+        class="input"
+        id="username-input"
+        type="text"
+        v-model="username"
+      />, at
+      <input class="input" id="orgname-input" type="text" v-model="orgname" />?
+    </h2>
+    <v-btn v-on:click="callAPI">Search</v-btn>
     <p>{{ info }}</p>
     <my-footer />
   </div>
@@ -21,12 +30,14 @@ export default {
   data: function () {
     return {
       info: "",
+      username: "Username",
+      orgname: "Organisation",
     };
   },
   methods: {
-    callAPI: function (username) {
+    callAPI: function () {
       axios
-        .get("https://api.github.com/" + username)
+        .get("https://api.github.com/users/" + this.username)
         .then((response) => (this.info = response));
     },
   },
@@ -41,5 +52,13 @@ export default {
   text-align: center;
   min-height: 100vh;
   position: relative;
+}
+.input {
+  border: solid black;
+  border-radius: 10px;
+  width: 160px;
+  overflow: scroll;
+  color: rgb(48, 85, 119);
+  text-align: center;
 }
 </style>

@@ -16,6 +16,7 @@
 
 <style scoped>
 #hero {
+  margin: 0 0 20px 0;
   width: 100vw;
   background-image: linear-gradient(
     to right,
@@ -26,7 +27,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: space-evenly;
   text-align: center;
+  height: 25vh;
 }
 p {
   width: 50%;
