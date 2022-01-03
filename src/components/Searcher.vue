@@ -38,6 +38,11 @@ export default {
     error: false,
     errorMsg: "",
     items: ["Foo", "Bar", "Fizz", "Buzz"],
+    header: {
+      headers: {
+        Authorization: "token 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",
+      },
+    },
   }),
   methods: {
     callAPI: function () {
@@ -59,20 +64,21 @@ export default {
     },
     getUserInfo: function (user) {
       axios
-        .get("https://api.github.com/users/" + user)
-        .then((response) => (this.info = response.data))
+        .get("https://api.github.com/users/" + user, this.header)
+        .then((response) => this.getRepos(response))
         .catch((error) => {
           if (error.response) {
             this.errorMsg = "Error - no user data found";
             this.error = true;
-            console.log(this.info);
+            this.info = "";
           } else this.error = false;
         });
     },
+
     getOrgInfo: function (org) {
       axios
-        .get("https://api.github.com/orgs/" + org)
-        .then((response) => (this.info = response.data))
+        .get("https://api.github.com/orgs/" + org, this.header)
+        .then((response) => this.getRepos(response))
         .catch((error) => {
           if (error.response) {
             this.errorMsg = "Error - no org data found";
@@ -81,10 +87,48 @@ export default {
           } else this.error = false;
         });
     },
-    getOrgMembers: function (org) {
-      axios
-        .get("https://api.github.com/orgs/" + org + "/members")
-        .then((response) => (this.data = response.data));
+    getRepos: function (response) {
+      let numOfRepos = response.data.public_repos;
+      console.log("Num of repos: " + numOfRepos);
+
+      let reposUrl = response.data.repos_url;
+      this.parseRepoData(reposUrl, numOfRepos);
+    },
+    parseRepoData: async function (reposUrl, numOfRepos) {
+      let reposUsingLangL = {};
+      let repoPages = [];
+      let pageCount = Math.ceil(numOfRepos / 30); // 30 repos per page response
+      for (let i = 1; i <= pageCount; ++i) {
+        await axios
+          .get(reposUrl + "?page=" + i + "&per_page=30", this.header)
+
+          .then((response) => {
+            repoPages.push(response.data);
+          });
+      }
+      for (const page in repoPages) {
+        for (const repo in repoPages[page]) {
+          // get main language of repo
+          let mainLang = repoPages[page][repo].language;
+
+          // create object member identifier
+          let identifier = '"' + mainLang + '"';
+
+          // check if language is a member of object
+          if (identifier in reposUsingLangL) {
+            // if so, just increment number of times this language was main language in a repo
+            reposUsingLangL[identifier].timesUsed++;
+          } else {
+            // else, init member
+            reposUsingLangL[identifier] = {};
+            reposUsingLangL[identifier]["name"] = {}; // have to "init" it to something, so...
+            reposUsingLangL[identifier]["name"] = mainLang;
+            reposUsingLangL[identifier]["timesUsed"] = 1;
+          }
+        }
+      }
+
+      console.log(reposUsingLangL);
     },
   },
 };
@@ -99,6 +143,7 @@ export default {
   border: solid black;
   width: 90%;
   align-self: center;
+  padding: 10px;
 }
 #question-container {
   display: flex;
