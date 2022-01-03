@@ -1,8 +1,10 @@
 <template>
-  <div id="app">
+  <v-app id="app">
     <hero />
 
-    <h2>
+    <searcher />
+
+    <!-- <h2>
       What languages are preffered by
       <input
         class="input"
@@ -13,77 +15,33 @@
       <input class="input" id="orgname-input" type="text" v-model="orgname" />?
     </h2>
     <a href="#" v-on:click="callAPI">Search</a>
-    <p>{{ info }}</p>
+    <p>{{ info }}</p> -->
     <my-footer />
-  </div>
+  </v-app>
 </template>
 
 <script>
 import Hero from "@/components/Hero.vue";
 import MyFooter from "@/components/MyFooter.vue";
-import axios from "axios";
+import Searcher from "@/components/Searcher.vue";
 
 export default {
   name: "App",
   components: {
     Hero,
     MyFooter,
+    Searcher,
   },
-  data: function () {
-    return {
-      info: "",
-      username: "Username",
-      orgname: "Organisation",
-      data: [],
-    };
-  },
-  methods: {
-    callAPI: function () {
-      let usernameProvided = !(this.username === "n/a" || this.username === "");
-      let orgnameProvided = !(
-        this.orgname === "n/a" ||
-        this.orgname === "" ||
-        this.orgname === "Organisation"
-      );
-
-      if (usernameProvided && !orgnameProvided) {
-        this.getUserInfo(this.username);
-      } else if (!usernameProvided && orgnameProvided) {
-        this.getOrgInfo(this.orgname);
-      }
-    },
-    getUserInfo: function (user) {
-      axios
-        .get("https://api.github.com/users/" + user)
-        .then((response) => (this.info = response.data))
-        .catch((error) => {
-          if (error.response) {
-            this.info = "Error - no user data found";
-            console.log(this.info);
-          }
-        });
-    },
-    getOrgInfo: function (org) {
-      axios
-        .get("https://api.github.com/orgs/" + org)
-        .then((response) => (this.info = response.data))
-        .catch((error) => {
-          if (error.response) {
-            this.info = "Error - no org data found";
-            console.log(this.info);
-          }
-        });
-    },
-    getOrgMembers: function (org) {
-      axios
-        .get("https://api.github.com/orgs/" + org + "/members")
-        .then((response) => (this.data = response.data));
-    },
-  },
+  data: () => ({
+    info: "",
+    username: "Username",
+    orgname: "Organisation",
+    items: ["Foo", "Bar", "Fizz", "Buzz"],
+  }),
 };
 </script>
 
-<style>
+<style scoped>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
