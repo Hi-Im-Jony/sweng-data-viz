@@ -1,21 +1,7 @@
 <template>
   <v-app id="app">
     <hero />
-
     <searcher />
-
-    <!-- <h2>
-      What languages are preffered by
-      <input
-        class="input"
-        id="username-input"
-        type="text"
-        v-model="username"
-      />, at
-      <input class="input" id="orgname-input" type="text" v-model="orgname" />?
-    </h2>
-    <a href="#" v-on:click="callAPI">Search</a>
-    <p>{{ info }}</p> -->
     <my-footer />
   </v-app>
 </template>
