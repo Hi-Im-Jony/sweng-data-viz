@@ -23,8 +23,10 @@
     <div v-if="error">
       <p class="error">{{ errorMsg }}</p>
     </div>
-
-    <p>{{ info }}</p>
+    <column-chart
+      v-if="this.info.bChartData != null"
+      :data="this.info.bChartData"
+    ></column-chart>
   </div>
 </template>
 <script>
@@ -33,14 +35,13 @@ import axios from "axios";
 export default {
   data: () => ({
     info: {
-      mainLangs: "",
-      langMetrics: "",
+      pChartData: null,
+      bChartData: null,
     },
     name: "",
     selection: "",
     error: false,
     errorMsg: "",
-    items: ["Foo", "Bar", "Fizz", "Buzz"],
     header: {
       headers: {
         Authorization: "token: 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",
@@ -49,8 +50,12 @@ export default {
   }),
   methods: {
     callAPI: function () {
+      this.info.pChartData = null;
+      this.info.bChartData = null;
       let nameProvided = !(this.name === "");
       if (this.selection === "") {
+        this.info.pChartData = [];
+        this.info.bChartData = [];
         this.errorMsg =
           "Please specify if you want to search for a user or an organisation";
         this.error = true;
@@ -60,6 +65,8 @@ export default {
           if (this.selection === "organisation") this.getOrgInfo(this.name);
           else this.getUserInfo(this.name);
         } else {
+          this.info.pChartData = [];
+          this.info.bChartData = [];
           this.errorMsg = "No name provided";
           this.error = true;
         }
@@ -71,6 +78,8 @@ export default {
         .then((response) => this.getRepos(response))
         .catch((error) => {
           if (error.response) {
+            this.info.pChartData = [];
+            this.info.bChartData = [];
             this.errorMsg = "Error - no user data found";
             this.error = true;
             this.info = "";
@@ -160,8 +169,19 @@ export default {
       for (const metric in langMetrics)
         langMetrics[metric] = (langMetrics[metric] / totalMetric) * 100; // generate percentages
 
-      this.info.mainLangs = reposUsingLangL;
-      this.info.langMetrics = langMetrics;
+      this.formatData(reposUsingLangL, langMetrics);
+    },
+    formatData: function (bData, pData) {
+      let formattedBarData = [];
+      for (const data in bData) {
+        let formattedData = [bData[data].name, bData[data].timesUsed];
+        formattedBarData.push(formattedData);
+      }
+
+      //console.log(pData);
+      this.info.bChartData = formattedBarData;
+      console.log(this.info.bChartData);
+      this.info.pChartData = pData;
     },
   },
 };
@@ -173,7 +193,6 @@ export default {
   flex-direction: column;
   justify-content: space-evenly;
   align-items: center;
-  border: solid black;
   width: 90%;
   align-self: center;
   padding: 10px;
