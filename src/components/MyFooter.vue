@@ -11,6 +11,7 @@ footer {
   background-color: rgb(27, 26, 26);
   display: flex;
   flex-direction: column;
+  align-items: center;
   position: absolute;
   bottom: 0;
   font-size: 10px;
