@@ -1,6 +1,7 @@
 <template>
   <div id="app">
     <hero />
+
     <h2>
       What languages are preffered by
       <input
@@ -11,7 +12,7 @@
       />, at
       <input class="input" id="orgname-input" type="text" v-model="orgname" />?
     </h2>
-    <v-btn v-on:click="callAPI">Search</v-btn>
+    <a href="#" v-on:click="callAPI">Search</a>
     <p>{{ info }}</p>
     <my-footer />
   </div>
@@ -21,6 +22,7 @@
 import Hero from "@/components/Hero.vue";
 import MyFooter from "@/components/MyFooter.vue";
 import axios from "axios";
+
 export default {
   name: "App",
   components: {
@@ -32,13 +34,50 @@ export default {
       info: "",
       username: "Username",
       orgname: "Organisation",
+      data: [],
     };
   },
   methods: {
     callAPI: function () {
+      let usernameProvided = !(this.username === "n/a" || this.username === "");
+      let orgnameProvided = !(
+        this.orgname === "n/a" ||
+        this.orgname === "" ||
+        this.orgname === "Organisation"
+      );
+
+      if (usernameProvided && !orgnameProvided) {
+        this.getUserInfo(this.username);
+      } else if (!usernameProvided && orgnameProvided) {
+        this.getOrgInfo(this.orgname);
+      }
+    },
+    getUserInfo: function (user) {
       axios
-        .get("https://api.github.com/users/" + this.username)
-        .then((response) => (this.info = response));
+        .get("https://api.github.com/users/" + user)
+        .then((response) => (this.info = response.data))
+        .catch((error) => {
+          if (error.response) {
+            this.info = "Error - no user data found";
+            console.log(this.info);
+          }
+        });
+    },
+    getOrgInfo: function (org) {
+      axios
+        .get("https://api.github.com/orgs/" + org)
+        .then((response) => (this.info = response.data))
+        .catch((error) => {
+          if (error.response) {
+            this.info = "Error - no org data found";
+            console.log(this.info);
+          }
+        });
+    },
+    getOrgMembers: function (org) {
+      axios
+        .get("https://api.github.com/orgs/" + org + "/members")
+        .then((response) => (this.data = response.data));
     },
   },
 };
@@ -60,5 +99,7 @@ export default {
   overflow: scroll;
   color: rgb(48, 85, 119);
   text-align: center;
+  position: relative;
+  bottom: 2px;
 }
 </style>

@@ -15,6 +15,10 @@
 </template>
 
 <style scoped>
+* {
+  padding: 0;
+  margin: 0;
+}
 #hero {
   margin: 0 0 20px 0;
   width: 100vw;
@@ -29,7 +33,8 @@
   align-items: center;
   justify-content: space-evenly;
   text-align: center;
-  height: 25vh;
+  min-height: 25vh;
+  padding: 10px 0 10px 0;
 }
 p {
   width: 50%;

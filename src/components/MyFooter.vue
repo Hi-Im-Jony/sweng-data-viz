@@ -9,12 +9,15 @@
 footer {
   width: 100vw;
   background-color: rgb(27, 26, 26);
-  padding: 10px 0 10px 0;
   display: flex;
   flex-direction: column;
   position: absolute;
   bottom: 0;
   font-size: 10px;
   color: rgb(156, 156, 156);
+}
+p {
+  padding: 1px;
+  margin: 2px;
 }
 </style>
