@@ -32,7 +32,10 @@ import axios from "axios";
 
 export default {
   data: () => ({
-    info: "",
+    info: {
+      mainLangs: "",
+      langMetrics: "",
+    },
     name: "",
     selection: "",
     error: false,
@@ -40,7 +43,7 @@ export default {
     items: ["Foo", "Bar", "Fizz", "Buzz"],
     header: {
       headers: {
-        Authorization: "token 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",
+        Authorization: "token: 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",
       },
     },
   }),
@@ -95,6 +98,7 @@ export default {
       this.parseRepoData(reposUrl, numOfRepos);
     },
     parseRepoData: async function (reposUrl, numOfRepos) {
+      let langUrls = [];
       let reposUsingLangL = {};
       let repoPages = [];
       let pageCount = Math.ceil(numOfRepos / 30); // 30 repos per page response
@@ -125,10 +129,39 @@ export default {
             reposUsingLangL[identifier]["name"] = mainLang;
             reposUsingLangL[identifier]["timesUsed"] = 1;
           }
+
+          // add current repos languages to list to analyse later
+          let langUrl = repoPages[page][repo].languages_url;
+          langUrls.push(langUrl);
         }
       }
 
-      console.log(reposUsingLangL);
+      let langMetrics = {};
+      for (const langUrl in langUrls) {
+        await axios
+          .get(langUrls[langUrl] + "", this.header)
+          .then((response) => {
+            let langs = Object.keys(response.data);
+            for (const lang in langs) {
+              if (langs[lang] in langMetrics) {
+                langMetrics[langs[lang]] =
+                  langMetrics[langs[lang]] + response.data[langs[lang]];
+              } else {
+                langMetrics[langs[lang]] = response.data[langs[lang]];
+              }
+            }
+          });
+      }
+
+      let totalMetric = 0;
+      for (const metric in langMetrics)
+        totalMetric = totalMetric + langMetrics[metric];
+
+      for (const metric in langMetrics)
+        langMetrics[metric] = (langMetrics[metric] / totalMetric) * 100; // generate percentages
+
+      this.info.mainLangs = reposUsingLangL;
+      this.info.langMetrics = langMetrics;
     },
   },
 };
