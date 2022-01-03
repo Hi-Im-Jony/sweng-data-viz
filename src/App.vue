@@ -18,12 +18,6 @@ export default {
     MyFooter,
     Searcher,
   },
-  data: () => ({
-    info: "",
-    username: "Username",
-    orgname: "Organisation",
-    items: ["Foo", "Bar", "Fizz", "Buzz"],
-  }),
 };
 </script>
 
