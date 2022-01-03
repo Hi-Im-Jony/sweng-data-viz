@@ -52,10 +52,11 @@ export default {
     callAPI: function () {
       this.info.pChartData = null;
       this.info.bChartData = null;
+
       let nameProvided = !(this.name === "");
       if (this.selection === "") {
-        this.info.pChartData = [];
-        this.info.bChartData = [];
+        this.info.pChartData = null;
+        this.info.bChartData = null;
         this.errorMsg =
           "Please specify if you want to search for a user or an organisation";
         this.error = true;
@@ -65,9 +66,9 @@ export default {
           if (this.selection === "organisation") this.getOrgInfo(this.name);
           else this.getUserInfo(this.name);
         } else {
-          this.info.pChartData = [];
-          this.info.bChartData = [];
-          this.errorMsg = "No name provided";
+          this.info.pChartData = null;
+          this.info.bChartData = null;
+          this.errorMsg = "No  " + this.selection + " name provided";
           this.error = true;
         }
       }
@@ -78,8 +79,8 @@ export default {
         .then((response) => this.getRepos(response))
         .catch((error) => {
           if (error.response) {
-            this.info.pChartData = [];
-            this.info.bChartData = [];
+            this.info.pChartData = null;
+            this.info.bChartData = null;
             this.errorMsg = "Error - no user data found";
             this.error = true;
             this.info = "";
@@ -93,6 +94,8 @@ export default {
         .then((response) => this.getRepos(response))
         .catch((error) => {
           if (error.response) {
+            this.info.pChartData = null;
+            this.info.bChartData = null;
             this.errorMsg = "Error - no org data found";
             this.error = true;
             console.log(this.info);
