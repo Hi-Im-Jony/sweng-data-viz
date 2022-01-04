@@ -62,7 +62,7 @@ export default {
     errorMsg: "",
     header: {
       headers: {
-        Authorization: "token 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",
+        Authorization: "token <input_token>",
       },
     },
   }),
@@ -187,10 +187,10 @@ export default {
       for (const metric in langMetrics)
         totalMetric = totalMetric + langMetrics[metric];
 
-      for (const metric in langMetrics)
-        langMetrics[metric] = Math.round(
-          (langMetrics[metric] / totalMetric) * 100
-        ).toFixed(2); // generate percentages
+      for (const metric in langMetrics) {
+        langMetrics[metric] = (langMetrics[metric] / totalMetric) * 100;
+        langMetrics[metric] = langMetrics[metric].toFixed(2); // generate percentages
+      }
 
       this.formatData(reposUsingLangL, langMetrics);
     },

@@ -1,15 +1,14 @@
 <template>
   <div id="hero">
-    <h1 id="title">Data Viz</h1>
-    <h3 id="sub-title">CSU33012 - Software Engineering Metric Visualisation</h3>
+    <h1 id="sub-title">CSU33012 - Software Engineering Metric Visualisation</h1>
     <p>
-      Hello there, welcome to Data Viz - a Data Visualisation Project. A
-      question that many people ponder is: what's trendy at the moment?
-      Specifically, as programmers and computer scientists, we often wonder,
-      what technologies are popular, and who are they popular with? Data Viz was
-      designed to answer this question, by using the GitHub REST API, to
-      identify the most popular languages within an organisation, or, to see
-      what your favourite contributors enjoy using!
+      Using the GitHub REST API, we can ask the question that many computer find
+      out what the most used and preffered technologies are, by individuals or
+      organisations. This is important, as it can help you choose which
+      technologies to pick up next!
+      <br />
+      We use publicly available information, so private repos are ommitted from
+      results.
     </p>
   </div>
 </template>
