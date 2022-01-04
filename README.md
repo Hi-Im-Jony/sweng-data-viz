@@ -5,20 +5,13 @@
 npm install
 ```
 
-### Compiles and hot-reloads for development
+### Compiles and runs application
 ```
 npm run serve
 ```
 
-### Compiles and minifies for production
+### Don't forget your own auth token!
+Go to Searcher.vue, ctr+f ```token``` and input your own token
 ```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
