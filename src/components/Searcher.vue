@@ -23,10 +23,28 @@
     <div v-if="error">
       <p class="error">{{ errorMsg }}</p>
     </div>
-    <column-chart
-      v-if="this.info.bChartData != null"
-      :data="this.info.bChartData"
-    ></column-chart>
+    <div id="charts-container">
+      <div v-if="this.info.pChartData" id="pchart-container">
+        <h3>Percentage Of Code In "X" Language</h3>
+        <pie-chart
+          id="pchart"
+          :data="this.info.pChartData"
+          suffix="%"
+          label="Title"
+        />
+      </div>
+      <div id="bchart-container">
+        <h3 v-if="this.info.bChartData">
+          Number Of Projects A Language Was The "Main" Language
+        </h3>
+        <column-chart
+          xtitle="Main Language"
+          ytitle="Number of Repos"
+          v-if="this.info.bChartData != null"
+          :data="this.info.bChartData"
+        />
+      </div>
+    </div>
   </div>
 </template>
 <script>
@@ -44,7 +62,7 @@ export default {
     errorMsg: "",
     header: {
       headers: {
-        Authorization: "token: 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",
+        Authorization: "token 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",
       },
     },
   }),
@@ -113,10 +131,10 @@ export default {
       let langUrls = [];
       let reposUsingLangL = {};
       let repoPages = [];
-      let pageCount = Math.ceil(numOfRepos / 30); // 30 repos per page response
+      let pageCount = Math.ceil(numOfRepos / 100); // 100 repos per page response
       for (let i = 1; i <= pageCount; ++i) {
         await axios
-          .get(reposUrl + "?page=" + i + "&per_page=30", this.header)
+          .get(reposUrl + "?page=" + i + "&per_page=100", this.header)
 
           .then((response) => {
             repoPages.push(response.data);
@@ -170,21 +188,31 @@ export default {
         totalMetric = totalMetric + langMetrics[metric];
 
       for (const metric in langMetrics)
-        langMetrics[metric] = (langMetrics[metric] / totalMetric) * 100; // generate percentages
+        langMetrics[metric] = Math.round(
+          (langMetrics[metric] / totalMetric) * 100
+        ).toFixed(2); // generate percentages
 
       this.formatData(reposUsingLangL, langMetrics);
     },
     formatData: function (bData, pData) {
+      // format barchart data
       let formattedBarData = [];
       for (const data in bData) {
         let formattedData = [bData[data].name, bData[data].timesUsed];
         formattedBarData.push(formattedData);
       }
 
+      // format piechart data
+      let formattedPieData = [];
+      console.log(pData);
+      for (const [key, value] of Object.entries(pData)) {
+        let formattedData = [key, value];
+        formattedPieData.push(formattedData);
+      }
+
       //console.log(pData);
       this.info.bChartData = formattedBarData;
-      console.log(this.info.bChartData);
-      this.info.pChartData = pData;
+      this.info.pChartData = formattedPieData;
     },
   },
 };
@@ -205,6 +233,13 @@ export default {
   justify-content: center;
   width: 100%;
 }
+#charts-container {
+  display: flex;
+  align-content: center;
+  justify-content: space-evenly;
+  width: 100%;
+  margin: 20px;
+}
 .input {
   width: 160px;
   margin: 0 7px 0 7px;
@@ -217,5 +252,13 @@ a {
 }
 .error {
   margin: 10px;
+}
+#pchart-container {
+  display: flex;
+  flex-direction: column;
+}
+#bchart-container {
+  display: flex;
+  flex-direction: column;
 }
 </style>

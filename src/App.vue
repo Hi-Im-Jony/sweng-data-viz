@@ -1,7 +1,9 @@
 <template>
   <v-app id="app">
-    <hero />
-    <searcher />
+    <div id="content">
+      <hero />
+      <searcher />
+    </div>
     <my-footer />
   </v-app>
 </template>
@@ -27,8 +29,13 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  min-height: 100vh;
-  position: relative;
+}
+#content {
+  min-height: 100vh !important;
+  position: relative !important;
+  padding: 0 0 60px 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 .input {
   border: solid black;
