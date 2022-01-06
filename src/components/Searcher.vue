@@ -34,13 +34,13 @@
         />
       </div>
       <div id="bchart-container">
-        <h3 v-if="this.info.bChartData">
+        <h3 v-if="this.info.bChartData != {}">
           Number Of Projects A Language Was The "Main" Language
         </h3>
         <column-chart
           xtitle="Main Language"
           ytitle="Number of Repos"
-          v-if="this.info.bChartData != null"
+          v-if="this.info.bChartData != {}"
           :data="this.info.bChartData"
         />
       </div>
@@ -49,12 +49,15 @@
 </template>
 <script>
 import axios from "axios";
+import Vue from "vue";
 
 export default {
   data: () => ({
     info: {
       pChartData: null,
-      bChartData: null,
+      bChartData: {
+        Test: 0,
+      },
     },
     name: "",
     selection: "",
@@ -62,7 +65,7 @@ export default {
     errorMsg: "",
     header: {
       headers: {
-        Authorization: "token <input_token>",
+        Authorization: "token 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",
       },
     },
   }),
@@ -92,9 +95,10 @@ export default {
       }
     },
     getUserInfo: function (user) {
+      this.info.bChartData = { test: 1 };
       axios
         .get("https://api.github.com/users/" + user, this.header)
-        .then((response) => this.getRepos(response))
+        .then((response) => this.getRepoPages(response))
         .catch((error) => {
           if (error.response) {
             this.info.pChartData = null;
@@ -107,9 +111,10 @@ export default {
     },
 
     getOrgInfo: function (org) {
+      this.info.bChartData = {};
       axios
         .get("https://api.github.com/orgs/" + org, this.header)
-        .then((response) => this.getRepos(response))
+        .then((response) => this.getRepoPages(response))
         .catch((error) => {
           if (error.response) {
             this.info.pChartData = null;
@@ -120,100 +125,106 @@ export default {
           } else this.error = false;
         });
     },
-    getRepos: function (response) {
-      let numOfRepos = response.data.public_repos;
+    getRepoPages: function (response) {
+      // Num of total public repos we will analyse
+      const numOfRepos = response.data.public_repos;
       console.log("Num of repos: " + numOfRepos);
+      // Num of "pages" (containing repo info) we will receive from API
+      const pageCount = Math.ceil(numOfRepos / 100); // 100 repos per page response
+      console.log("Num of pages: " + pageCount);
+      // Url to repo infor
+      const reposUrl = response.data.repos_url;
 
-      let reposUrl = response.data.repos_url;
-      this.parseRepoData(reposUrl, numOfRepos);
-    },
-    parseRepoData: async function (reposUrl, numOfRepos) {
-      let langUrls = [];
-      let reposUsingLangL = {};
-      let repoPages = [];
-      let pageCount = Math.ceil(numOfRepos / 100); // 100 repos per page response
+      // For each page we need
       for (let i = 1; i <= pageCount; ++i) {
-        await axios
+        axios
+          // Request the page
           .get(reposUrl + "?page=" + i + "&per_page=100", this.header)
-
-          .then((response) => {
-            repoPages.push(response.data);
-          });
+          // Parse page info
+          .then((pageReceived) => {
+            this.parsePageData(pageReceived.data);
+          })
+          .then(console.log("Page done: " + i));
       }
-      for (const page in repoPages) {
-        for (const repo in repoPages[page]) {
-          // get main language of repo
-          let mainLang = repoPages[page][repo].language;
+    },
+    parsePageData: function (page) {
+      // Have to create tmpData object, can't directly change bChartData
 
-          // create object member identifier
-          let identifier = '"' + mainLang + '"';
-
-          // check if language is a member of object
-          if (identifier in reposUsingLangL) {
-            // if so, just increment number of times this language was main language in a repo
-            reposUsingLangL[identifier].timesUsed++;
-          } else {
-            // else, init member
-            reposUsingLangL[identifier] = {};
-            reposUsingLangL[identifier]["name"] = {}; // have to "init" it to something, so...
-            reposUsingLangL[identifier]["name"] = mainLang;
-            reposUsingLangL[identifier]["timesUsed"] = 1;
-          }
-
-          // add current repos languages to list to analyse later
-          let langUrl = repoPages[page][repo].languages_url;
-          langUrls.push(langUrl);
+      for (const repo in page) {
+        const currentRepo = page[repo];
+        const mainLang = currentRepo.language;
+        let langID = '"' + mainLang + '"';
+        if (langID === null) langID = "other";
+        // check if language already "on record"
+        if (langID in this.info.bChartData) {
+          // just update value
+          this.info.bChartData[langID]++;
+        } else {
+          // add this language to records
+          Vue.set(this.info.bChartData, langID, 1);
         }
       }
-
-      let langMetrics = {};
-      for (const langUrl in langUrls) {
-        await axios
-          .get(langUrls[langUrl] + "", this.header)
-          .then((response) => {
-            let langs = Object.keys(response.data);
-            for (const lang in langs) {
-              if (langs[lang] in langMetrics) {
-                langMetrics[langs[lang]] =
-                  langMetrics[langs[lang]] + response.data[langs[lang]];
-              } else {
-                langMetrics[langs[lang]] = response.data[langs[lang]];
-              }
-            }
-          });
-      }
-
-      let totalMetric = 0;
-      for (const metric in langMetrics)
-        totalMetric = totalMetric + langMetrics[metric];
-
-      for (const metric in langMetrics) {
-        langMetrics[metric] = (langMetrics[metric] / totalMetric) * 100;
-        langMetrics[metric] = langMetrics[metric].toFixed(2); // generate percentages
-      }
-
-      this.formatData(reposUsingLangL, langMetrics);
+      console.log(this.info.bChartData);
     },
-    formatData: function (bData, pData) {
-      // format barchart data
-      let formattedBarData = [];
-      for (const data in bData) {
-        let formattedData = [bData[data].name, bData[data].timesUsed];
-        formattedBarData.push(formattedData);
-      }
+    // parseRepoData: async function (reposUrl, numOfRepos) {
+    //   let langUrls = [];
+    //   let reposUsingLangL = {};
+    //   let repoPages = [];
 
-      // format piechart data
-      let formattedPieData = [];
-      console.log(pData);
-      for (const [key, value] of Object.entries(pData)) {
-        let formattedData = [key, value];
-        formattedPieData.push(formattedData);
-      }
+    //   for (const page in repoPages) {
+    //     for (const repo in repoPages[page]) {
+    //       // get main language of repo
+    //       let mainLang = repoPages[page][repo].language;
 
-      //console.log(pData);
-      this.info.bChartData = formattedBarData;
-      this.info.pChartData = formattedPieData;
-    },
+    //       // create object member identifier
+    //       let identifier = '"' + mainLang + '"';
+
+    //       // check if language is a member of object
+    //       if (identifier in reposUsingLangL) {
+    //         // if so, just increment number of times this language was main language in a repo
+    //         reposUsingLangL[identifier].timesUsed++;
+    //       } else {
+    //         // else, init member
+    //         reposUsingLangL[identifier] = {};
+    //         reposUsingLangL[identifier]["name"] = {}; // have to "init" it to something, so...
+    //         reposUsingLangL[identifier]["name"] = mainLang;
+    //         reposUsingLangL[identifier]["timesUsed"] = 1;
+    //       }
+
+    //       // add current repos languages to list to analyse later
+    //       let langUrl = repoPages[page][repo].languages_url;
+    //       langUrls.push(langUrl);
+    //     }
+    //   }
+
+    //   let langMetrics = {};
+    //   for (const langUrl in langUrls) {
+    //     await axios
+    //       .get(langUrls[langUrl] + "", this.header)
+    //       .then((response) => {
+    //         let langs = Object.keys(response.data);
+    //         for (const lang in langs) {
+    //           if (langs[lang] in langMetrics) {
+    //             langMetrics[langs[lang]] =
+    //               langMetrics[langs[lang]] + response.data[langs[lang]];
+    //           } else {
+    //             langMetrics[langs[lang]] = response.data[langs[lang]];
+    //           }
+    //         }
+    //       });
+    //   }
+
+    //   let totalMetric = 0;
+    //   for (const metric in langMetrics)
+    //     totalMetric = totalMetric + langMetrics[metric];
+
+    //   for (const metric in langMetrics) {
+    //     langMetrics[metric] = (langMetrics[metric] / totalMetric) * 100;
+    //     langMetrics[metric] = langMetrics[metric].toFixed(2); // generate percentages
+    //   }
+
+    //   this.formatData(reposUsingLangL, langMetrics);
+    // },
   },
 };
 </script>
